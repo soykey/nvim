@@ -30,9 +30,6 @@ require("lazy").setup({
   {"williamboman/mason.nvim"},
   {"williamboman/mason-lspconfig.nvim"},
 
-  -- copilot
-  {"github/copilot.vim"},
-
   --Markdown Preview
   {
       "iamcco/markdown-preview.nvim",
@@ -53,8 +50,18 @@ require("mason-lspconfig").setup({
 
 -- LSP 設定
 local lspconfig = require("lspconfig")
-lspconfig.clangd.setup({})
 lspconfig.lua_ls.setup({})
+lspconfig.clangd.setup({
+  cmd = { "/opt/microchip/xc8/v3.00/bin/xc8-clangd" },  -- xc8-clangd のパス
+  filetypes = { "c" },  -- C言語のみ適用
+  root_dir = lspconfig.util.root_pattern("Makefile", ".git"), -- プロジェクトのルートを決定
+  settings = {
+    clangd = {
+      fallbackFlags = { "--target=pic32mx", "-I/opt/microchip/xc8/v3.00/include" }, -- 必要に応じて変更
+    },
+  },
+})
+
 
 -- Treesitter 設定
 require("nvim-treesitter.configs").setup({
@@ -105,6 +112,7 @@ require("toggleterm").setup({
     shade_terminals = true,
 })
 vim.api.nvim_set_keymap("n", "<leader>t", ":ToggleTerm<CR>", { noremap = true, silent = true })
+vim.keymap.set('t', '<Esc>', [[<C-\><C-n>]], { noremap = true, silent = true })
 
 -- ウィンドウ間の移動 (コーディング画面 ⇄ ツリー ⇄ ターミナル)
 vim.api.nvim_set_keymap("n", "<C-h>", "<C-w>h", { noremap = true, silent = true })
@@ -112,15 +120,9 @@ vim.api.nvim_set_keymap("n", "<C-j>", "<C-w>j", { noremap = true, silent = true 
 vim.api.nvim_set_keymap("n", "<C-k>", "<C-w>k", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("n", "<C-l>", "<C-w>l", { noremap = true, silent = true })
 
--- copilot 設定
-vim.g.copilot_no_tab_map = true
-vim.api.nvim_set_keymap("i", "<C-J>", 'copilot#Accept("<CR>")', { expr = true, silent = true, noremap = true })
-
--- lsp設定
-lspconfig.clangd.setup({})
-require("luasnip.loaders.from_vscode").lazy_load()
 
 -- C 言語のスニペットを追加
+require("luasnip.loaders.from_vscode").lazy_load()
 local ls = require("luasnip")
 ls.add_snippets("c", {
     ls.parser.parse_snippet("main", "int main() {\n    return 0;\n}"),
